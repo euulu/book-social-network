@@ -1,5 +1,6 @@
 package org.eulu.booknetwork.book;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.eulu.booknetwork.user.AppUser;
 import org.springframework.security.core.Authentication;
@@ -16,5 +17,11 @@ public class BookService {
         Book book = bookMapper.toBook(request);
         book.setOwner(user);
         return bookRepository.save(book).getId();
+    }
+
+    public BookResponse findById(Integer bookId) {
+        return bookRepository.findById(bookId)
+                .map(bookMapper::toBookResponse)
+                .orElseThrow(() -> new EntityNotFoundException("No book found with the ID: " + bookId));
     }
 }
