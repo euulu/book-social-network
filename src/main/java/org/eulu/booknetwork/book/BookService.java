@@ -11,7 +11,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
@@ -121,9 +120,22 @@ public class BookService {
                 .orElseThrow(() -> new EntityNotFoundException("No book found with ID: " + bookId));
         AppUser user = (AppUser) connectedUser.getPrincipal();
         if (!Objects.equals(book.getOwner().getId(), user.getId())) {
-            throw new OperationNotPermittedException("You cannot update books shareable status");
+            throw new OperationNotPermittedException("You cannot update others book shareable status");
         }
         book.setShareable(!book.isShareable());
+        bookRepository.save(book);
+
+        return bookId;
+    }
+
+    public Integer updateArchivedStatus(Integer bookId, Authentication connectedUser) {
+        Book book = bookRepository.findById(bookId)
+                .orElseThrow(() -> new EntityNotFoundException("No book found with ID: " + bookId));
+        AppUser user = (AppUser) connectedUser.getPrincipal();
+        if (!Objects.equals(book.getOwner().getId(), user.getId())) {
+            throw new OperationNotPermittedException("You cannot update others book archived status");
+        }
+        book.setArchived(!book.isArchived());
         bookRepository.save(book);
 
         return bookId;
