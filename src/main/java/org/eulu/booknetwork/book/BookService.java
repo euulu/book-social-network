@@ -3,6 +3,7 @@ package org.eulu.booknetwork.book;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.eulu.booknetwork.common.PageResponse;
+import org.eulu.booknetwork.exception.OperationNotPermittedException;
 import org.eulu.booknetwork.history.BookTransactionHistory;
 import org.eulu.booknetwork.history.BookTransactionHistoryRepository;
 import org.eulu.booknetwork.user.AppUser;
@@ -10,10 +11,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 
 import static org.eulu.booknetwork.book.BookSpecification.withOwnerId;
 
@@ -111,5 +114,18 @@ public class BookService {
                 allBorrowedBooks.isFirst(),
                 allBorrowedBooks.isLast()
         );
+    }
+
+    public Integer updateShareableStatus(Integer bookId, Authentication connectedUser) {
+        Book book = bookRepository.findById(bookId)
+                .orElseThrow(() -> new EntityNotFoundException("No book found with ID: " + bookId));
+        AppUser user = (AppUser) connectedUser.getPrincipal();
+        if (!Objects.equals(book.getOwner().getId(), user.getId())) {
+            throw new OperationNotPermittedException("You cannot update books shareable status");
+        }
+        book.setShareable(!book.isShareable());
+        bookRepository.save(book);
+
+        return bookId;
     }
 }
