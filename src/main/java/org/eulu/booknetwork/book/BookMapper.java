@@ -1,5 +1,6 @@
 package org.eulu.booknetwork.book;
 
+import org.eulu.booknetwork.history.BookTransactionHistory;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -28,6 +29,18 @@ public class BookMapper {
                 .owner(book.getOwner().getFullName())
                 // TODO: implement cover
                 // .cover()
+                .build();
+    }
+
+    public BorrowedBookResponse toBorrowedBookResponse(BookTransactionHistory bookTransactionHistory) {
+        return BorrowedBookResponse.builder()
+                .id(bookTransactionHistory.getBook().getId())
+                .title(bookTransactionHistory.getBook().getTitle())
+                .authorName(bookTransactionHistory.getBook().getAuthorName())
+                .isbn(bookTransactionHistory.getBook().getIsbn())
+                .rate(bookTransactionHistory.getBook().getRate())
+                .returned(bookTransactionHistory.isReturned())
+                .returned(bookTransactionHistory.isReturnApproved())
                 .build();
     }
 }

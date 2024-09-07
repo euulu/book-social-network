@@ -3,6 +3,8 @@ package org.eulu.booknetwork.book;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.eulu.booknetwork.common.PageResponse;
+import org.eulu.booknetwork.history.BookTransactionHistory;
+import org.eulu.booknetwork.history.BookTransactionHistoryRepository;
 import org.eulu.booknetwork.user.AppUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -20,6 +22,7 @@ import static org.eulu.booknetwork.book.BookSpecification.withOwnerId;
 public class BookService {
     private final BookMapper bookMapper;
     private final BookRepository bookRepository;
+    private final BookTransactionHistoryRepository transactionHistoryRepository;
 
     public Integer save(BookRequest request, Authentication connectedUser) {
         AppUser user = (AppUser) connectedUser.getPrincipal();
@@ -69,6 +72,25 @@ public class BookService {
                 books.getTotalPages(),
                 books.isFirst(),
                 books.isLast()
+        );
+    }
+
+    public PageResponse<BorrowedBookResponse> findAllBorrowedBooks(int page, int size, Authentication connectedUser) {
+        AppUser user = (AppUser) connectedUser.getPrincipal();
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        Page<BookTransactionHistory> allBorrowedBooks = transactionHistoryRepository.findAllBorrowedBooks(pageable, user.getId());
+        List<BorrowedBookResponse> bookResponses = allBorrowedBooks.stream()
+                .map(bookMapper::toBorrowedBookResponse)
+                .toList();
+
+        return new PageResponse<>(
+                bookResponses,
+                allBorrowedBooks.getNumber(),
+                allBorrowedBooks.getSize(),
+                allBorrowedBooks.getTotalElements(),
+                allBorrowedBooks.getTotalPages(),
+                allBorrowedBooks.isFirst(),
+                allBorrowedBooks.isLast()
         );
     }
 }
