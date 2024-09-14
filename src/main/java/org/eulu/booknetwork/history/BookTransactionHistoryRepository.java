@@ -5,6 +5,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import java.util.Optional;
+
 public interface BookTransactionHistoryRepository extends JpaRepository<BookTransactionHistory, Integer> {
     @Query("""
             select history
@@ -28,4 +30,14 @@ public interface BookTransactionHistoryRepository extends JpaRepository<BookTran
             and bth.returnApproved = false
             """)
     boolean isAlreadyBorrowedByUser(Integer bookId, Integer userId);
+
+    @Query("""
+            select bth
+            from BookTransactionHistory bth
+            where bth.user.id = :userId
+            and bth.book.id = :bookId
+            and bth.returned = false
+            and bth.returnApproved = false
+            """)
+    Optional<BookTransactionHistory> findByBookIdAndUserId(Integer bookId, Integer userId);
 }
