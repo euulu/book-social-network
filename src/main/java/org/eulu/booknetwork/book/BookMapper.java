@@ -1,5 +1,6 @@
 package org.eulu.booknetwork.book;
 
+import org.eulu.booknetwork.file.FileUtils;
 import org.eulu.booknetwork.history.BookTransactionHistory;
 import org.springframework.stereotype.Service;
 
@@ -27,8 +28,7 @@ public class BookMapper {
                 .archived(book.isArchived())
                 .shareable(book.isShareable())
                 .owner(book.getOwner().getFullName())
-                // TODO: implement cover
-                // .cover()
+                .cover(FileUtils.readFileFromLocation(book.getBookCover()))
                 .build();
     }
 
